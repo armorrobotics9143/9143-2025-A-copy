@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.ElevatorConstants;
 
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.CorAl;
 import frc.robot.subsystems.AlLow;
@@ -42,10 +43,10 @@ public class RobotContainer {
 	private final CommandXboxController operator_controller = new CommandXboxController(1);
 
 	public final Swerve drivetrain = SwerveConstants.createDrivetrain();
-
 	private final Elevator elevator = new Elevator();
 	private final CorAl coral = new CorAl();
 	private final AlLow allow = new AlLow();
+	private final Vision vision = new Vision();
 
 	private final SendableChooser<Command> autoChooser;
 	private final ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
@@ -93,6 +94,16 @@ public class RobotContainer {
 
 		// Reset the field-centric heading on left bumper press
 		driver_controller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+		// Toggle AprilTag tracking with the Y button
+        driver_controller.y().onTrue(Commands.runOnce(() -> {
+            vision.toggleTracking();
+            if (vision.isTrackingEnabled()) {
+                drivetrain.createAprilTagTrackingCommand().schedule();
+            } else {
+                drivetrain.getCurrentCommand().cancel();
+            }
+        }));
 
 		drivetrain.registerTelemetry(logger::telemeterize);
 		
